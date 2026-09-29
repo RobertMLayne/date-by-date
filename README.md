@@ -16,6 +16,15 @@ Source: [RobertMLayne/date-by-date](https://github.com/RobertMLayne/date-by-date
 ## Included
 Desktop and mobile layouts; touch and keyboard swipes; editable adult profiles; up to six photos; age/gender/city filters; paid intention/interest filters and unlimited rewind; persistent messaging with polling; conversation prompts; date invitations with acceptance/decline; reporting/blocking; discoverability pause; authenticated accounts; isolated fictional demo; Stripe Checkout, portal and signed webhook handlers.
 
+## Clique: platonic friends and group meetups
+- Clique is open to all genders, with independent optional friendship gender and interest preferences. It does not infer friendship eligibility from sexual orientation or dating preferences.
+- Each person has up to four mutual friends, independently of dating matches. A friendship consumes one slot for both people.
+- At capacity, the person explicitly chooses a friend to replace. No existing friendship ends until the new friendship becomes mutual and both participants can make room. Each participant controls their own replacement choice.
+- Removing or replacing a friend removes both sides of that friendship. Pending requests can be withdrawn even if the recipient pauses.
+- A meetup clique consists of its organizer plus all current friends, for two to five total people. Every member must enable group discovery. Separate cliques can match only when their sizes are equal and their organizers mutually agree.
+- Roster changes, opt-outs, pausing and blocks clear affected group requests and connections. Group matching creates a shared conversation, not automatic individual friendships. Existing friend conversations remain separate.
+- Clique includes private friend chats, shared group chats, profile review, reporting/blocking, and an isolated fictional demo. Reports are stored; no staffed response service is claimed.
+
 ## Run locally
 Node 22.13+; npm. Install dependencies, then run:
 ```sh
@@ -62,5 +71,4 @@ Illustrative fictional demo portraits from Pexels; the photographed people are n
 - Anh Tuấn Lê — https://www.pexels.com/photo/portrait-of-a-woman-smiling-13205272/
 - Sóc Năng Động — https://www.pexels.com/photo/close-up-portrait-of-smiling-young-man-outdoors-37720662/
 - nappy — https://www.pexels.com/photo/smiling-man-wearing-black-snapback-cap-and-black-crew-neck-shirt-936090/
-
 

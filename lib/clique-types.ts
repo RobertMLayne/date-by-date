@@ -1,0 +1,3 @@
+export type FriendProfile={id:string;name:string;age:number;gender:string;city:string;bio:string;interests:string[];photos:string[];prompt:string;friendCount:number;likesYou:boolean;liked:boolean;replacement:string|null;friendshipId?:string};
+export type CliqueGroup={owner:FriendProfile;members:FriendProfile[];revision:number;likesYou:boolean;liked:boolean;matchId?:string};
+export type CliqueState={enabled:boolean;groupsEnabled:boolean;revision:number;viewer:FriendProfile|null;friends:FriendProfile[];profiles:FriendProfile[];incoming:FriendProfile[];outgoing:FriendProfile[];groups:CliqueGroup[];groupMatches:CliqueGroup[];readyForGroups:boolean;messages:{id:string;friendship:string|null;group_match:string|null;sender:string;body:string;created:number;name:string}[]};

@@ -1,0 +1,69 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1790707367541,
+      "tag": "0000_aspiring_purple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1790707517256,
+      "tag": "0001_lame_miek",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790707522205,
+      "tag": "0002_matching_invariants",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1790708543078,
+      "tag": "0003_brown_living_lightning",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1790708733496,
+      "tag": "0004_matching_race_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1790709833688,
+      "tag": "0005_precise_entitlement_expiry",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1790710330707,
+      "tag": "0006_faulty_darwin",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1790710702934,
+      "tag": "0007_clique_invariants",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1790710899902,
+      "tag": "0008_clique_internal_blocks",
+      "breakpoints": true
+    }
+  ]
+}
