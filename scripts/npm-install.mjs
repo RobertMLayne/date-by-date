@@ -1,10 +1,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import {
   closeSync,
-  constants,
-  fstatSync,
   ftruncateSync,
-  openSync,
   readFileSync,
   writeFileSync,
 } from "node:fs";
@@ -12,6 +9,7 @@ import { constants as osConstants } from "node:os";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
+import { npmInvocation, openInstallReport } from "./install-inputs.mjs";
 
 const MAX_PACKAGES = 100_000;
 
@@ -98,42 +96,30 @@ export class NpmCacheProgress {
 }
 
 export async function runNpmInstall(command, cacheSeed = "not_applicable") {
-  let descriptor;
+  let invocation;
   try {
-    if (process.env.SITES_INSTALL_REPORT_PATH && constants.O_NOFOLLOW) {
-      descriptor = openSync(
-        process.env.SITES_INSTALL_REPORT_PATH,
-        constants.O_WRONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
-      );
-      if (!fstatSync(descriptor).isFile()) {
-        closeSync(descriptor);
-        descriptor = undefined;
-      }
-    }
+    invocation = npmInvocation(command);
   } catch {
-    if (descriptor !== undefined) {
-      try {
-        closeSync(descriptor);
-      } catch {}
-    }
-    descriptor = undefined;
+    process.stderr.write("Invalid npm installation arguments.\n");
+    return { code: 64, signal: null };
   }
+  const descriptor = openInstallReport();
   const env = { ...process.env };
   delete env.SITES_INSTALL_REPORT_PATH;
-  const [executable, ...args] = command;
+  const { executable, args, registryArgs } = invocation;
   let registry;
-  const installIndex = args.indexOf("ci");
-  if (descriptor !== undefined && installIndex >= 0) {
+  if (descriptor !== undefined) {
     try {
       const configured = spawnSync(
         executable,
-        [...args.slice(0, installIndex), "config", "get", "registry"],
+        registryArgs,
         {
           env,
           encoding: "utf8",
           stdio: ["ignore", "pipe", "ignore"],
           timeout: 3000,
           maxBuffer: 4096,
+          shell: false,
         },
       );
       if (configured.status === 0) registry = configured.stdout.trim();
@@ -152,6 +138,7 @@ export async function runNpmInstall(command, cacheSeed = "not_applicable") {
   try {
     const child = spawn(executable, [...args, "--loglevel=http"], {
       env,
+      shell: false,
       stdio: ["inherit", "inherit", "pipe"],
     });
     const lines = createInterface({ input: child.stderr, crlfDelay: Infinity });

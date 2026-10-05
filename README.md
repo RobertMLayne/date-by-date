@@ -48,6 +48,14 @@ npm run build
 ```
 Tests cover mutual consent, free and paid capacity, FIFO ordering, queued busy users, downgrade preservation, blocking, immutable match endpoints, transaction rollback, duplicate likes, filtered discovery, per-conversation history, recipient-specific drafts, paid transparency, and signed webhook tampering/expiry.
 
+### Installer and local runtime inputs
+
+The installation helpers accept the existing npm `ci` flags and the supported pnpm, Corepack, or configured `pnpm@11.25.0` Node entry point. They reject arbitrary executable names, Node evaluation flags, extra launcher arguments, and lock/store paths outside the selected runtime. These are developer tools; package-manager binaries, package lifecycle scripts, and the developer's account remain trusted.
+
+`SITES_RUNTIME_ROOT` may select an absolute external runtime directory. Wrangler and Miniflare output overrides must stay within that directory, without traversal or symlink/junction redirection. To relocate these outputs, change the runtime root and use paths within it. Optional installation telemetry only writes the Sites caller's pre-existing private `sites-install-*/report.json` file; unsupported no-follow opens leave telemetry unavailable without changing installation results.
+
+The installer regression tests check rejected execution/file targets, supported launcher arguments, child status, runtime containment, symlink/junction redirection, and complete cache telemetry. Unix report privacy checks run where no-follow opens are supported; Windows skips that specific case.
+
 ## Connect billing
 Purchases remain disabled until configured. No real charges have been tested.
 1. Create two Stripe recurring prices: $4.99 USD, every month, one for each add-on.

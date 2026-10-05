@@ -15,6 +15,7 @@ import { constants as osConstants } from "node:os";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
+import { installLockPaths, installStore, openInstallReport, pnpmInvocation } from "./install-inputs.mjs";
 
 const MAX_PACKAGES = 100_000;
 const CACHE_SEEDS = new Set(["seed_used", "seed_unavailable", "seed_lockfile_mismatch", "decision_unavailable", "not_applicable"]);
@@ -76,15 +77,7 @@ export class InstallProgress {
 }
 
 function openReport() {
-  const report = process.env.SITES_INSTALL_REPORT_PATH;
-  if (!report || !constants.O_NOFOLLOW) return undefined;
-  let fd;
-  try {
-    fd = openSync(report, constants.O_WRONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
-    if (fstatSync(fd).isFile()) return fd;
-  } catch {}
-  if (fd !== undefined) closeSync(fd);
-  return undefined;
+  return openInstallReport();
 }
 
 function writeReport(fd, report) {
@@ -125,7 +118,10 @@ async function openLock(filename, waitSeconds) {
   try {
     if (!filename || !constants.O_NOFOLLOW || !constants.O_NONBLOCK) throw new Error("Unsupported lock");
     fd = openSync(filename, constants.O_CREAT | constants.O_RDWR | constants.O_NOFOLLOW | constants.O_NONBLOCK, 0o600);
-    if (!fstatSync(fd).isFile()) throw new Error("Expected a regular lock file");
+    const file = fstatSync(fd);
+    if (!file.isFile() || file.nlink !== 1 ||
+        (process.getuid && (file.uid !== process.getuid() || (file.mode & 0o077) !== 0)))
+      throw new Error("Expected a private regular lock file");
     const child = spawn("flock", ["-w", waitSeconds, "3"], { stdio: ["ignore", "ignore", "ignore", fd] });
     const code = await new Promise((resolve) => {
       child.once("error", () => resolve(undefined));
@@ -170,7 +166,13 @@ async function holdInstallLocks(projectLock, sharedLock, waitSeconds) {
 async function main() {
   const argsIn = process.argv.slice(2);
   if (argsIn[0] === "--hold-install-locks") {
-    await holdInstallLocks(argsIn[1], argsIn[2], argsIn[3]);
+    try {
+      const locks = installLockPaths(argsIn[1], argsIn[2], argsIn[3]);
+      await holdInstallLocks(locks.project, locks.shared, locks.waitSeconds);
+    } catch {
+      process.stdout.write("unavailable\n");
+      process.exitCode = 64;
+    }
     return;
   }
   if (argsIn[0] === "--report-store") {
@@ -192,6 +194,16 @@ async function main() {
     process.exitCode = 64;
     return;
   }
+  let invocation;
+  let selectedStore;
+  try {
+    invocation = pnpmInvocation(executable, prefix);
+    selectedStore = installStore(store, storeScope);
+  } catch {
+    process.stderr.write("Invalid pnpm installation arguments.\n");
+    process.exitCode = 64;
+    return;
+  }
   const fd = openReport();
   const report = { version: 1, cache_seed: cacheSeed, store_scope: storeScope, store_state: storeState };
   writeReport(fd, report);
@@ -199,15 +211,15 @@ async function main() {
   const failure = {};
   const env = { ...process.env };
   delete env.SITES_INSTALL_REPORT_PATH;
-  const args = [...prefix, "install", "--prod=false", "--ignore-scripts=false",
-    "--frozen-lockfile", "--prefer-offline", "--store-dir", store,
-    "--cache-dir", path.join(store, "policy-cache"), "--fetch-retries=0",
+  const args = [...invocation.prefix, "install", "--prod=false", "--ignore-scripts=false",
+    "--frozen-lockfile", "--prefer-offline", "--store-dir", selectedStore,
+    "--cache-dir", path.join(selectedStore, "policy-cache"), "--fetch-retries=0",
     "--fetch-timeout=30000", "--network-concurrency=1", "--reporter=ndjson",
     "--package-import-method=auto"];
   let result = { code: 1, signal: null };
   let receivedSignal;
   try {
-    const child = spawn(executable, args, { env, stdio: ["inherit", "pipe", "inherit"] });
+    const child = spawn(invocation.executable, args, { env, shell: false, stdio: ["inherit", "pipe", "inherit"] });
     const lines = createInterface({ input: child.stdout, crlfDelay: Infinity });
     lines.on("line", (line) => showLine(line, progress, failure));
     // timeout/exec owns the inherited group. Relaying would deliver signals twice.
